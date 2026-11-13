@@ -201,6 +201,7 @@
       font-weight: bold;
       margin-top: 6px;
       color: #16a34a;
+      min-height: 18px;
     }
     .stats-box {
       flex: 1;
@@ -437,7 +438,7 @@
   <div class="intro-text">
     Sp-25789が管理する音声共有サイトです！<br />
     ここにある音声はそれぞれの利用規約を守って利用してください！<br />
-    <a onclick="openRuleModal()">ルール</a>を守って利用してください！ぜひ <a href="https://scratch.mit.edu/users/Sp-25789/" target="_blank" rel="noopener">scratch</a> もご覧ください！
+    <a onclick="openRuleModal()">ルール</a>を守って利用してください！ぜひ <a href="https://scratch.mit.edu/users/Sp-25789/" target="_blank" rel="noopener">scratch</a> もご覧ください。
   </div>
 
   <div class="top-grid">
@@ -445,246 +446,414 @@
       <input id="audioInput" type="file" accept="audio/*" />
       <label for="audioInput" class="upload-label">音声ファイルをアップロード</label>
 
-タップしてファイルを選択
-音声名
+      <div id="selectedFileHint" class="upload-sub">タップしてファイルを選択</div>
 
+      <div id="uploadDetails" class="upload-details" style="display: none;">
+        <div class="field-label">音声名</div>
+        <div class="name-row">
+          <input id="customNameInput" class="name-input" type="text" placeholder="音声名" />
+          <span id="fileExtBadge" class="ext-badge">.mp3</span>
+        </div>
 
-.mp3
-ダウンロードを許可
+        <div class="field-label">ダウンロードを許可</div>
+        <label class="perm-row" for="allowDownloadSelect">
+          <span class="perm-select-wrap">
+            <select id="allowDownloadSelect" class="perm-select">
+              <option value="true">○</option>
+              <option value="false">×</option>
+            </select>
+            <span class="perm-arrow">▾</span>
+          </span>
+          <span id="permLabelText" class="perm-text">する</span>
+        </label>
 
-説明
-投稿
-キャンセル
-音声ファイルの数
-0
-大きさ
-0 KB
+        <div class="field-label">説明</div>
+        <textarea id="descInput" class="desc-textarea" placeholder="説明文を入力"></textarea>
 
-みんなの音声
-🔍
+        <div class="action-row">
+          <button id="uploadBtn" class="post-btn" type="button" onclick="uploadAudio()">投稿</button>
+          <button class="cancel-upload-btn" type="button" onclick="resetUploadForm()">キャンセル</button>
+        </div>
+      </div>
 
-コメント
+      <div id="statusText" class="status-msg"></div>
+    </div>
 
+    <div class="stats-box">
+      <div class="stats-label">音声ファイルの数</div>
+      <div id="fileCount" class="stats-value">0</div>
+      <div class="stats-label">大きさ</div>
+      <div id="totalSize" class="stats-value">0 KB</div>
+    </div>
+  </div>
 
-送信
+  <div>
+    <div class="section-badge badge-mint">みんなの音声</div>
+    <div class="search-wrap">
+      <span class="search-icon">🔍</span>
+      <input id="searchInput" class="search-input" type="text" placeholder="検索" />
+    </div>
+    <div id="voiceList" class="voice-list"></div>
+  </div>
 
-💗 0
-⭐ 0
-ルール
-利用ルール
+  <div>
+    <div class="section-badge badge-pink">コメント</div>
+    <div class="comment-form">
+      <input id="commentInput" class="comment-input" type="text" placeholder="コメントを入力" />
+      <button id="commentSendBtn" class="comment-send-btn" type="button" onclick="postComment()">送信</button>
+    </div>
+    <div id="commentList" class="comment-list"></div>
+  </div>
 
-・現在ルールは準備中です。
+  <div class="reaction-bar">
+    <button class="reaction-btn" type="button" onclick="addReaction('hearts')">💗 <span id="heartCount">0</span></button>
+    <button class="reaction-btn" type="button" onclick="addReaction('stars')">⭐ <span id="starCount">0</span></button>
+  </div>
 
+  <div class="footer-area">
+    <a class="rule-link" onclick="openRuleModal()">ルール</a>
+  </div>
 
-・公序良俗に反する音声や、著作権を侵害する音声のアップロードは禁止です。
+  <div id="ruleModal" class="modal-overlay" role="dialog" aria-modal="true" aria-label="利用ルール">
+    <div class="modal-box">
+      <div class="modal-title">利用ルール</div>
+      <div class="modal-body">
+        ・現在ルールは準備中です。<br /><br />
+        ・公序良俗に反する音声や、著作権を侵害する音声のアップロードは禁止です。<br /><br />
+        ・各音声の説明文に記載された利用条件を守ってご利用ください。
+      </div>
+      <button class="modal-close" type="button" onclick="closeRuleModal()">閉じる</button>
+    </div>
+  </div>
 
+  <script>
+    const SUPABASE_URL = 'https://your-project-id.supabase.co';
+    const SUPABASE_KEY = 'your-anon-key';
+    const BUCKET_NAME = 'Voice';
 
-・各音声の説明文に記載された利用条件を守ってご利用ください。
+    const supabaseClient = window.supabase && SUPABASE_URL.startsWith('https://') && SUPABASE_KEY && SUPABASE_KEY !== 'your-anon-key'
+      ? window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY)
+      : null;
 
-閉じる
+    let allVoices = [];
+    let selectedFileExt = '.mp3';
 
-const SUPABASE_URL = 'supabase.co';
-const SUPABASE_KEY = 'sb_publishable_0USUuu96Uz4XBBFAA2GPcg_GPwKAFfz';
-const BUCKET_NAME = 'Voice';
-const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
-let allVoices = [];
-let selectedFileExt = '.mp3';
-function escapeHtml(str = '') {
-return str.replace(/[&<>"']/g, (m) => ({
-'&': '&',
-'<': '<',
-'>': '>',
-'"': '"',
-"'": "'"
-}[m]));
-}
-function updatePermLabel() {
-const sel = document.getElementById('allowDownloadSelect');
-document.getElementById('permLabelText').textContent = sel.value === 'true' ? 'する' : 'しない';
-}
-function resetUploadForm() {
-document.getElementById('audioInput').value = '';
-document.getElementById('customNameInput').value = '';
-document.getElementById('descInput').value = '';
-document.getElementById('allowDownloadSelect').value = 'true';
-updatePermLabel();
-document.getElementById('selectedFileHint').textContent = 'タップしてファイルを選択';
-document.getElementById('statusText').textContent = '';
-document.getElementById('uploadDetails').style.display = 'none';
-}
-function onFileSelected() {
-const input = document.getElementById('audioInput');
-if (!input.files || input.files.length === 0) return;
-const file = input.files[0];
-const dotIndex = file.name.lastIndexOf('.');
-const baseName = dotIndex !== -1 ? file.name.slice(0, dotIndex) : file.name;
-selectedFileExt = dotIndex !== -1 ? file.name.slice(dotIndex).toLowerCase() : '.mp3';
-document.getElementById('customNameInput').value = baseName;
-document.getElementById('fileExtBadge').textContent = selectedFileExt;
-document.getElementById('selectedFileHint').textContent = '選択中：' + file.name;
-document.getElementById('statusText').textContent = '';
-document.getElementById('uploadDetails').style.display = 'block';
-}
-async function loadVoices() {
-const listEl = document.getElementById('voiceList');
-try {
-const [storageRes, infoRes] = await Promise.all([
-supabaseClient.storage.from(BUCKET_NAME).list('', { sortBy: { column: 'created_at', order: 'desc' } }),
-supabaseClient.from('voices_info').select('*')
-]);
-if (storageRes.error) throw storageRes.error;
-const infoMap = {};
-if (infoRes.data) {
-infoRes.data.forEach((row) => {
-infoMap[row.file_name] = row;
-});
-}
-const files = (storageRes.data || []).filter((item) => item.name !== '.emptyFolderPlaceholder');
-document.getElementById('fileCount').textContent = String(files.length);
-document.getElementById('totalSize').textContent = formatBytes(
-files.reduce((sum, file) => sum + (file.metadata?.size || 0), 0)
-);
-allVoices = files.map((file) => {
-const { data: urlData } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(file.name);
-const meta = infoMap[file.name];
-const fallbackName = file.name.replace(/^\d+_/, '');
-return {
-rawName: file.name,
-displayName: meta?.display_name || fallbackName,
-description: meta?.description || 'ダウンロードは自由です',
-allowDownload: typeof meta?.allow_download === 'boolean' ? meta.allow_download : true,
-publicUrl: urlData.publicUrl
-};
-});
-renderVoices();
-} catch (error) {
-console.error(error);
-listEl.innerHTML = '音声が見つかりません';
-}
-}
-function renderVoices() {
-const listEl = document.getElementById('voiceList');
-const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
-const filtered = allVoices.filter((voice) =>
-voice.displayName.toLowerCase().includes(keyword) ||
-voice.description.toLowerCase().includes(keyword)
-);
-if (filtered.length === 0) {
-listEl.innerHTML = '音声が見つかりません';
-return;
-}
-listEl.innerHTML = filtered.map((voice) => `
+    function escapeHtml(str = '') {
+      return String(str).replace(/[&<>"']/g, (m) => ({
+        '&': '&amp;',
+        '<': '&lt;',
+        '>': '&gt;',
+        '"': '&quot;',
+        "'": '&#39;'
+      }[m]));
+    }
 
-${escapeHtml(voice.displayName)}
-説明
-${escapeHtml(voice.description)}
+    function updatePermLabel() {
+      const sel = document.getElementById('allowDownloadSelect');
+      const label = document.getElementById('permLabelText');
+      if (sel && label) {
+        label.textContent = sel.value === 'true' ? 'する' : 'しない';
+      }
+    }
 
-${voice.allowDownload
-? <a href="${voice.publicUrl}?download=${encodeURIComponent(voice.displayName)}" class="download-btn" download="${escapeHtml(voice.displayName)}">ダウンロード</a>
-: 'ダウンロード不可'}
+    function resetUploadForm() {
+      const audioInput = document.getElementById('audioInput');
+      const customNameInput = document.getElementById('customNameInput');
+      const descInput = document.getElementById('descInput');
+      const allowDownloadSelect = document.getElementById('allowDownloadSelect');
+      const selectedFileHint = document.getElementById('selectedFileHint');
+      const statusText = document.getElementById('statusText');
+      const uploadDetails = document.getElementById('uploadDetails');
 
+      if (audioInput) audioInput.value = '';
+      if (customNameInput) customNameInput.value = '';
+      if (descInput) descInput.value = '';
+      if (allowDownloadSelect) allowDownloadSelect.value = 'true';
+      updatePermLabel();
+      if (selectedFileHint) selectedFileHint.textContent = 'タップしてファイルを選択';
+      if (statusText) statusText.textContent = '';
+      if (uploadDetails) uploadDetails.style.display = 'none';
+    }
 
-`).join('');
-}
-async function uploadAudio() {
-const input = document.getElementById('audioInput');
-const customName = document.getElementById('customNameInput').value.trim();
-const descInput = document.getElementById('descInput');
-const allowDownload = document.getElementById('allowDownloadSelect').value === 'true';
-const btn = document.getElementById('uploadBtn');
-const status = document.getElementById('statusText');
-if (!input.files || input.files.length === 0) {
-alert('音声ファイルを選択してください。');
-return;
-}
-const file = input.files[0];
-const finalDisplayName = (customName || '音声') + selectedFileExt;
-const storageSafeName = `${Date.now()}_audio${selectedFileExt.replace(/[^a-zA-Z0-9.]/g, '')}`;
-const descText = descInput.value.trim() || 'ダウンロードは自由です';
-btn.disabled = true;
-status.style.color = '#2563eb';
-status.textContent = '投稿中...';
-try {
-const { error: uploadError } = await supabaseClient.storage.from(BUCKET_NAME).upload(storageSafeName, file);
-if (uploadError) throw uploadError;
-const { error: insertError } = await supabaseClient.from('voices_info').insert([
-{
-file_name: storageSafeName,
-display_name: finalDisplayName,
-description: descText,
-allow_download: allowDownload
-}
-]);
-if (insertError) throw insertError;
-resetUploadForm();
-await loadVoices();
-status.style.color = '#16a34a';
-status.textContent = '投稿しました';
-} catch (error) {
-console.error(error);
-status.style.color = '#dc2626';
-status.textContent = '投稿に失敗しました';
-} finally {
-btn.disabled = false;
-}
-}
-async function loadComments() {
-const listEl = document.getElementById('commentList');
-try {
-const { data, error } = await supabaseClient
-.from('comments')
-.select('*')
-.order('created_at', { ascending: false })
-.limit(30);
-if (error || !data || data.length === 0) {
-listEl.innerHTML = 'コメントがありません';
-return;
-}
-listEl.innerHTML = data.map((c) => `<div class="comment-bubble">${escapeHtml(c.content)}</div>`).join('');
-} catch (error) {
-listEl.innerHTML = 'コメントがありません';
-}
-}
-async function postComment() {
-const input = document.getElementById('commentInput');
-const text = input.value.trim();
-if (!text) return;
-input.value = '';
-await supabaseClient.from('comments').insert([{ content: text }]);
-await loadComments();
-}
-async function loadReactions() {
-try {
-const { data } = await supabaseClient.from('reactions').select('*').eq('id', 1).single();
-if (data) {
-document.getElementById('heartCount').textContent = String(data.hearts);
-document.getElementById('starCount').textContent = String(data.stars);
-}
-} catch (error) {}
-}
-async function addReaction(type) {
-const countEl = document.getElementById(type === 'hearts' ? 'heartCount' : 'starCount');
-const nextVal = parseInt(countEl.textContent || '0', 10) + 1;
-countEl.textContent = String(nextVal);
-await supabaseClient.from('reactions').update({ [type]: nextVal }).eq('id', 1);
-}
-document.getElementById('audioInput').addEventListener('change', onFileSelected);
-document.getElementById('searchInput').addEventListener('input', renderVoices);
-function openRuleModal() {
-document.getElementById('ruleModal').style.display = 'flex';
-}
-function closeRuleModal() {
-document.getElementById('ruleModal').style.display = 'none';
-}
-function formatBytes(bytes) {
-if (!bytes || bytes === 0) return '0 KB';
-if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
-if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
-return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
-}
-async function init() {
-updatePermLabel();
-await Promise.all([loadVoices(), loadComments(), loadReactions()]);
-}
-init();
+    function onFileSelected() {
+      const input = document.getElementById('audioInput');
+      const customNameInput = document.getElementById('customNameInput');
+      const fileExtBadge = document.getElementById('fileExtBadge');
+      const selectedFileHint = document.getElementById('selectedFileHint');
+      const statusText = document.getElementById('statusText');
+      const uploadDetails = document.getElementById('uploadDetails');
 
+      if (!input || !input.files || input.files.length === 0) return;
+      const file = input.files[0];
+      const dotIndex = file.name.lastIndexOf('.');
+      const baseName = dotIndex !== -1 ? file.name.slice(0, dotIndex) : file.name;
+      selectedFileExt = dotIndex !== -1 ? file.name.slice(dotIndex).toLowerCase() : '.mp3';
+
+      if (customNameInput) customNameInput.value = baseName;
+      if (fileExtBadge) fileExtBadge.textContent = selectedFileExt;
+      if (selectedFileHint) selectedFileHint.textContent = '選択中：' + file.name;
+      if (statusText) statusText.textContent = '';
+      if (uploadDetails) uploadDetails.style.display = 'block';
+    }
+
+    function formatBytes(bytes) {
+      if (!bytes || bytes === 0) return '0 KB';
+      if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+      if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+      return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
+    }
+
+    function renderVoices() {
+      const listEl = document.getElementById('voiceList');
+      const keyword = document.getElementById('searchInput')?.value.trim().toLowerCase() || '';
+
+      if (!listEl) return;
+
+      const filtered = allVoices.filter((voice) =>
+        (voice.displayName || '').toLowerCase().includes(keyword) ||
+        (voice.description || '').toLowerCase().includes(keyword)
+      );
+
+      if (filtered.length === 0) {
+        listEl.innerHTML = '<div class="empty-msg">音声が見つかりません</div>';
+        return;
+      }
+
+      listEl.innerHTML = filtered.map((voice) => {
+        const safeName = escapeHtml(voice.displayName || '音声');
+        const safeDesc = escapeHtml(voice.description || '');
+        const audioHtml = voice.publicUrl
+          ? `<audio controls src="${voice.publicUrl}"></audio>`
+          : '<span class="no-download-tag">再生不可</span>';
+
+        const downloadHtml = voice.allowDownload && voice.publicUrl
+          ? `<a href="${voice.publicUrl}" class="download-btn" download="${safeName}">ダウンロード</a>`
+          : '<span class="no-download-tag">ダウンロード不可</span>';
+
+        return `
+          <div class="voice-card">
+            <div class="voice-name">${safeName}</div>
+            <div class="voice-desc-label">説明</div>
+            <div class="voice-desc">${safeDesc}</div>
+            <div class="voice-bottom">
+              ${audioHtml}
+              ${downloadHtml}
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function loadVoices() {
+      const listEl = document.getElementById('voiceList');
+      const fileCountEl = document.getElementById('fileCount');
+      const totalSizeEl = document.getElementById('totalSize');
+
+      if (!supabaseClient) {
+        if (listEl) listEl.innerHTML = '<div class="empty-msg">Supabaseの設定が未完了です</div>';
+        return;
+      }
+
+      try {
+        const [storageRes, infoRes] = await Promise.all([
+          supabaseClient.storage.from(BUCKET_NAME).list('', { sortBy: { column: 'created_at', order: 'desc' } }),
+          supabaseClient.from('voices_info').select('*')
+        ]);
+
+        if (storageRes.error) throw storageRes.error;
+
+        const infoMap = {};
+        if (infoRes.data) {
+          infoRes.data.forEach((row) => {
+            infoMap[row.file_name] = row;
+          });
+        }
+
+        const files = (storageRes.data || []).filter((item) => item.name !== '.emptyFolderPlaceholder');
+
+        if (fileCountEl) fileCountEl.textContent = String(files.length);
+        if (totalSizeEl) totalSizeEl.textContent = formatBytes(files.reduce((sum, file) => sum + (file.metadata?.size || 0), 0));
+
+        allVoices = files.map((file) => {
+          const { data: urlData } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(file.name);
+          const meta = infoMap[file.name];
+          const fallbackName = file.name.replace(/^\d+_/, '');
+
+          return {
+            rawName: file.name,
+            displayName: meta?.display_name || fallbackName,
+            description: meta?.description || 'ダウンロードは自由です',
+            allowDownload: typeof meta?.allow_download === 'boolean' ? meta.allow_download : true,
+            publicUrl: urlData?.publicUrl || ''
+          };
+        });
+
+        renderVoices();
+      } catch (error) {
+        console.error(error);
+        if (listEl) listEl.innerHTML = '<div class="empty-msg">音声が見つかりません</div>';
+      }
+    }
+
+    async function uploadAudio() {
+      if (!supabaseClient) {
+        alert('Supabaseの設定が未完了です。');
+        return;
+      }
+
+      const input = document.getElementById('audioInput');
+      const customName = document.getElementById('customNameInput')?.value.trim();
+      const descInput = document.getElementById('descInput');
+      const allowDownload = document.getElementById('allowDownloadSelect')?.value === 'true';
+      const btn = document.getElementById('uploadBtn');
+      const status = document.getElementById('statusText');
+
+      if (!input || !input.files || input.files.length === 0) {
+        alert('音声ファイルを選択してください。');
+        return;
+      }
+
+      const file = input.files[0];
+      const finalDisplayName = (customName || '音声') + selectedFileExt;
+      const storageSafeName = `${Date.now()}_audio${selectedFileExt.replace(/[^a-zA-Z0-9.]/g, '')}`;
+      const descText = descInput?.value.trim() || 'ダウンロードは自由です';
+
+      if (btn) btn.disabled = true;
+      if (status) {
+        status.style.color = '#2563eb';
+        status.textContent = '投稿中...';
+      }
+
+      try {
+        const { error: uploadError } = await supabaseClient.storage.from(BUCKET_NAME).upload(storageSafeName, file);
+        if (uploadError) throw uploadError;
+
+        const { error: insertError } = await supabaseClient.from('voices_info').insert([
+          {
+            file_name: storageSafeName,
+            display_name: finalDisplayName,
+            description: descText,
+            allow_download: allowDownload
+          }
+        ]);
+
+        if (insertError) throw insertError;
+
+        resetUploadForm();
+        await loadVoices();
+
+        if (status) {
+          status.style.color = '#16a34a';
+          status.textContent = '投稿しました';
+        }
+      } catch (error) {
+        console.error(error);
+        if (status) {
+          status.style.color = '#dc2626';
+          status.textContent = '投稿に失敗しました';
+        }
+      } finally {
+        if (btn) btn.disabled = false;
+      }
+    }
+
+    async function loadComments() {
+      const listEl = document.getElementById('commentList');
+      if (!listEl) return;
+
+      if (!supabaseClient) {
+        listEl.innerHTML = '<div class="empty-msg">コメントがありません</div>';
+        return;
+      }
+
+      try {
+        const { data, error } = await supabaseClient
+          .from('comments')
+          .select('*')
+          .order('created_at', { ascending: false })
+          .limit(30);
+
+        if (error || !data || data.length === 0) {
+          listEl.innerHTML = '<div class="empty-msg">コメントがありません</div>';
+          return;
+        }
+
+        listEl.innerHTML = data.map((c) => `<div class="comment-bubble">${escapeHtml(c.content)}</div>`).join('');
+      } catch (error) {
+        listEl.innerHTML = '<div class="empty-msg">コメントがありません</div>';
+      }
+    }
+
+    async function postComment() {
+      if (!supabaseClient) {
+        alert('Supabaseの設定が未完了です。');
+        return;
+      }
+
+      const input = document.getElementById('commentInput');
+      const text = input?.value.trim();
+      if (!text) return;
+
+      input.value = '';
+      await supabaseClient.from('comments').insert([{ content: text }]);
+      await loadComments();
+    }
+
+    async function loadReactions() {
+      if (!supabaseClient) return;
+
+      try {
+        const { data } = await supabaseClient.from('reactions').select('*').eq('id', 1).single();
+        if (data) {
+          const heartCount = document.getElementById('heartCount');
+          const starCount = document.getElementById('starCount');
+          if (heartCount) heartCount.textContent = String(data.hearts || 0);
+          if (starCount) starCount.textContent = String(data.stars || 0);
+        }
+      } catch (error) {
+        console.error(error);
+      }
+    }
+
+    async function addReaction(type) {
+      if (!supabaseClient) {
+        alert('Supabaseの設定が未完了です。');
+        return;
+      }
+
+      const countEl = document.getElementById(type === 'hearts' ? 'heartCount' : 'starCount');
+      const nextVal = parseInt(countEl?.textContent || '0', 10) + 1;
+      if (countEl) countEl.textContent = String(nextVal);
+      await supabaseClient.from('reactions').update({ [type]: nextVal }).eq('id', 1);
+    }
+
+    function openRuleModal() {
+      const modal = document.getElementById('ruleModal');
+      if (modal) modal.style.display = 'flex';
+    }
+
+    function closeRuleModal() {
+      const modal = document.getElementById('ruleModal');
+      if (modal) modal.style.display = 'none';
+    }
+
+    function bindEvents() {
+      const audioInput = document.getElementById('audioInput');
+      const searchInput = document.getElementById('searchInput');
+      const allowDownloadSelect = document.getElementById('allowDownloadSelect');
+
+      if (audioInput) audioInput.addEventListener('change', onFileSelected);
+      if (searchInput) searchInput.addEventListener('input', renderVoices);
+      if (allowDownloadSelect) allowDownloadSelect.addEventListener('change', updatePermLabel);
+    }
+
+    async function init() {
+      updatePermLabel();
+      bindEvents();
+      await Promise.all([loadVoices(), loadComments(), loadReactions()]);
+    }
+
+    window.addEventListener('DOMContentLoaded', init);
+  </script>
+</body>
+</html>
