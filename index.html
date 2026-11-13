@@ -18,8 +18,6 @@
       padding: 24px 16px 48px;
       line-height: 1.6;
     }
-
-    /* 青い角丸タイトルバッジ */
     .header-area {
       text-align: center;
       margin-bottom: 16px;
@@ -34,8 +32,6 @@
       border-radius: 10px;
       letter-spacing: 0.05em;
     }
-
-    /* 説明文エリア */
     .intro-text {
       font-size: 13.5px;
       color: #333333;
@@ -46,8 +42,6 @@
       text-decoration: underline;
       cursor: pointer;
     }
-
-    /* アップロード枠＋緑の統計ボックス（横並び） */
     .top-grid {
       display: flex;
       gap: 14px;
@@ -66,7 +60,6 @@
       align-items: center;
       gap: 8px;
       cursor: pointer;
-      transition: background 0.2s, border-color 0.2s;
     }
     .upload-box:hover {
       background-color: #f1f5f9;
@@ -87,8 +80,6 @@
     .upload-box input[type="file"] {
       display: none;
     }
-
-    /* 緑色の情報ボックス */
     .stats-box {
       flex: 1;
       background-color: #65c466;
@@ -113,8 +104,6 @@
     .stats-value:last-child {
       margin-bottom: 0;
     }
-
-    /* ファイル選択後に現れる詳細設定エリア */
     .upload-details {
       display: none;
       margin-bottom: 28px;
@@ -148,8 +137,6 @@
       color: #333333;
       min-width: 44px;
     }
-
-    /* ▼ する / しない 切り替えボタン */
     .perm-row {
       display: inline-flex;
       align-items: center;
@@ -193,8 +180,6 @@
       font-weight: bold;
       color: #111111;
     }
-
-    /* 大きめの説明入力欄 */
     .desc-textarea {
       width: 100%;
       height: 120px;
@@ -209,8 +194,6 @@
       outline: none;
       margin-bottom: 14px;
     }
-
-    /* 投稿ボタン行 */
     .action-row {
       display: flex;
       align-items: center;
@@ -225,14 +208,9 @@
       font-size: 15px;
       font-weight: bold;
       cursor: pointer;
-      box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);
-    }
-    .post-btn:hover {
-      background-color: #1e40af;
     }
     .post-btn:disabled {
       background-color: #94a3b8;
-      box-shadow: none;
       cursor: not-allowed;
     }
     .cancel-upload-btn {
@@ -251,8 +229,6 @@
       margin-top: 8px;
       color: #16a34a;
     }
-
-    /* セクション見出しバッジ（水色・ピンク） */
     .section-badge {
       display: inline-block;
       color: #ffffff;
@@ -268,8 +244,6 @@
     .badge-pink {
       background-color: #e93d82;
     }
-
-    /* 検索バー */
     .search-wrap {
       position: relative;
       margin-bottom: 16px;
@@ -291,8 +265,6 @@
       font-size: 14px;
       outline: none;
     }
-
-    /* 音声カード（グレーの角丸ボックス） */
     .voice-list {
       display: flex;
       flex-direction: column;
@@ -348,15 +320,11 @@
       font-weight: bold;
       padding: 6px 12px;
     }
-
-    /* 空状態メッセージ */
     .empty-msg {
       font-size: 14px;
       color: #666666;
       margin: 4px 0;
     }
-
-    /* コメントエリア */
     .comment-form {
       display: flex;
       gap: 8px;
@@ -397,8 +365,6 @@
       word-break: break-word;
       align-self: flex-start;
     }
-
-    /* リアクションボタン（💗と⭐） */
     .reaction-bar {
       display: flex;
       align-items: center;
@@ -417,11 +383,6 @@
       color: #333333;
       font-weight: bold;
     }
-    .reaction-btn:active {
-      transform: scale(1.15);
-    }
-
-    /* フッター（ルールリンク） */
     .footer-area {
       margin-top: 20px;
     }
@@ -431,8 +392,6 @@
       font-size: 15px;
       cursor: pointer;
     }
-
-    /* ルール表示用ポップアップ */
     .modal-overlay {
       display: none;
       position: fixed;
@@ -465,20 +424,30 @@
       background-color: #2563eb;
       color: #ffffff;
       border: none;
-padding: 8px 20px;
-border-radius: 8px;
-font-weight: bold;
-cursor: pointer;
-width: 100%;
-}
+      padding: 8px 20px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+      width: 100%;
+    }
+  </style>
+</head>
+<body>
 
+  <div class="header-area">
+    <div class="title-badge">音声共有サイト</div>
+  </div>
 
-音声共有サイト
-Sp-25789が管理する音声共有サイトです！
+  <div class="intro-text">
+    Sp-25789が管理する音声共有サイトです！<br>
+    ここにある音声はそれぞれの利用規約を守って利用してください！<br>
+    <a onclick="openRuleModal()">ルール</a>を守って利用してください！ぜひ <a href="https://mit.edu" target="_blank" rel="noopener">scratch</a> もご覧ください！
+  </div>
 
-ここにある音声はそれぞれの利用規約を守って利用してください！
-
-ルールを守って利用してください！ぜひ scratch もご覧ください！
+  <div class="top-grid">
+    <label class="upload-box" for="audioInput">
+      <span class="upload-label">音声ファイルをアップロード</span>
+タップしてファイルを選択
 
 音声ファイルの数
 0
@@ -545,7 +514,7 @@ await Promise.all([loadVoices(), loadComments(), loadReactions()]);
 function onFileSelected() {
 const input = document.getElementById('audioInput');
 if (!input.files || input.files.length === 0) return;
-const file = input.files;
+const file = input.files[0];
 const dotIndex = file.name.lastIndexOf('.');
 const baseName = dotIndex !== -1 ? file.name.substring(0, dotIndex) : file.name;
 selectedFileExt = dotIndex !== -1 ? file.name.substring(dotIndex).toLowerCase() : '.mp3';
@@ -654,7 +623,7 @@ if (!input.files || input.files.length === 0) {
 alert('音声ファイルを選択してください。');
 return;
 }
-const file = input.files;
+const file = input.files[0];
 const finalDisplayName = (customName || '音声') + selectedFileExt;
 const storageSafeName = ${Date.now()}_audio${selectedFileExt.replace(/[^a-zA-Z0-9.]/g, '')};
 const descText = descInput.value.trim() || 'ダウンロードは自由です';
