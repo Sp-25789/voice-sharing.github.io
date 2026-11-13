@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>音声共有サイト</title>
-  <script src="https://jsdelivr.net"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
   <style>
     body, div, input, textarea, select, button, a, label, span {
       box-sizing: border-box;
@@ -437,7 +437,7 @@
   <div class="intro-text">
     Sp-25789が管理する音声共有サイトです！<br />
     ここにある音声はそれぞれの利用規約を守って利用してください！<br />
-    <a onclick="openRuleModal()">ルール</a>を守って利用してください！ぜひ <a href="https://mit.edu" target="_blank" rel="noopener">scratch</a> もご覧ください！
+    <a onclick="openRuleModal()">ルール</a>を守って利用してください！ぜひ <a href="https://scratch.mit.edu/users/Sp-25789/" target="_blank" rel="noopener">scratch</a> もご覧ください！
   </div>
 
   <div class="top-grid">
@@ -495,7 +495,7 @@ return str.replace(/[&<>"']/g, (m) => ({
 '<': '<',
 '>': '>',
 '"': '"',
-"'": '''
+"'": "'"
 }[m]));
 }
 function updatePermLabel() {
@@ -599,7 +599,7 @@ return;
 }
 const file = input.files[0];
 const finalDisplayName = (customName || '音声') + selectedFileExt;
-const storageSafeName = ${Date.now()}_audio${selectedFileExt.replace(/[^a-zA-Z0-9.]/g, '')};
+const storageSafeName = `${Date.now()}_audio${selectedFileExt.replace(/[^a-zA-Z0-9.]/g, '')}`;
 const descText = descInput.value.trim() || 'ダウンロードは自由です';
 btn.disabled = true;
 status.style.color = '#2563eb';
@@ -640,7 +640,7 @@ if (error || !data || data.length === 0) {
 listEl.innerHTML = 'コメントがありません';
 return;
 }
-listEl.innerHTML = data.map((c) => <div class="comment-bubble">${escapeHtml(c.content)}</div>).join('');
+listEl.innerHTML = data.map((c) => `<div class="comment-bubble">${escapeHtml(c.content)}</div>`).join('');
 } catch (error) {
 listEl.innerHTML = 'コメントがありません';
 }
@@ -678,12 +678,13 @@ document.getElementById('ruleModal').style.display = 'none';
 }
 function formatBytes(bytes) {
 if (!bytes || bytes === 0) return '0 KB';
-if (bytes < 1024 * 1024) return ${Math.max(1, Math.round(bytes / 1024))} KB;
-if (bytes < 1024 * 1024 * 1024) return ${(bytes / (1024 * 1024)).toFixed(1)} MB;
-return ${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB;
+if (bytes < 1024 * 1024) return `${Math.max(1, Math.round(bytes / 1024))} KB`;
+if (bytes < 1024 * 1024 * 1024) return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+return `${(bytes / (1024 * 1024 * 1024)).toFixed(2)} GB`;
 }
 async function init() {
 updatePermLabel();
 await Promise.all([loadVoices(), loadComments(), loadReactions()]);
 }
 init();
+
