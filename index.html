@@ -6,204 +6,766 @@
   <title>音声共有サイト</title>
   <script src="https://jsdelivr.net"></script>
   <style>
+    * {
+      box-sizing: border-box;
+    }
     body {
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-      background-color: #f4f6f9;
-      color: #333;
-      max-width: 720px;
+      font-family: -apple-system, BlinkMacSystemFont, "Hiragino Sans", "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background-color: #ffffff;
+      color: #222222;
+      max-width: 680px;
       margin: 0 auto;
-      padding: 20px;
+      padding: 24px 16px 48px;
+      line-height: 1.6;
     }
-    h1 {
+
+    /* 青い角丸タイトルバッジ */
+    .header-area {
       text-align: center;
-      color: #2c3e50;
-      margin-bottom: 24px;
+      margin-bottom: 16px;
     }
-    .card {
-      background: #ffffff;
-      border-radius: 12px;
-      padding: 20px;
-      margin-bottom: 24px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+    .title-badge {
+      display: inline-block;
+      background-color: #1d4ed8;
+      color: #ffffff;
+      font-size: 22px;
+      font-weight: bold;
+      padding: 10px 28px;
+      border-radius: 10px;
+      letter-spacing: 0.05em;
     }
-    .upload-area {
+
+    /* 説明文エリア */
+    .intro-text {
+      font-size: 13.5px;
+      color: #333333;
+      margin-bottom: 20px;
+    }
+    .intro-text a {
+      color: #2563eb;
+      text-decoration: underline;
+      cursor: pointer;
+    }
+
+    /* アップロード枠＋緑の統計ボックス（横並び） */
+    .top-grid {
+      display: flex;
+      gap: 14px;
+      align-items: stretch;
+      margin-bottom: 18px;
+    }
+    .upload-box {
+      flex: 1.5;
+      border: 2px dashed #cbd5e1;
+      border-radius: 14px;
+      padding: 18px 14px;
+      background-color: #fafafa;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-    }
-    input[type="file"] {
-      padding: 10px;
-      border: 2px dashed #cbd5e1;
-      border-radius: 8px;
-      background: #f8fafc;
+      justify-content: center;
+      align-items: center;
+      gap: 8px;
       cursor: pointer;
+      transition: background 0.2s, border-color 0.2s;
     }
-    button {
-      background-color: #10b981;
-      color: white;
-      border: none;
-      padding: 12px 20px;
-      font-size: 16px;
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: background 0.2s;
+    .upload-box:hover {
+      background-color: #f1f5f9;
+      border-color: #94a3b8;
     }
-    button:hover {
-      background-color: #059669;
-    }
-    button:disabled {
-      background-color: #94a3b8;
-      cursor: not-allowed;
-    }
-    .status {
+    .upload-label {
       font-size: 14px;
-      color: #059669;
-      margin-top: 8px;
       font-weight: bold;
+      color: #475569;
+      text-align: center;
     }
-    .voice-item {
-      border-bottom: 1px solid #e2e8f0;
-      padding: 16px 0;
-    }
-    .voice-item:last-child {
-      border-bottom: none;
-    }
-    .voice-title {
-      font-weight: bold;
-      margin-bottom: 8px;
+    .upload-sub {
+      font-size: 11.5px;
+      color: #64748b;
+      text-align: center;
       word-break: break-all;
     }
-    .voice-controls {
+    .upload-box input[type="file"] {
+      display: none;
+    }
+
+    /* 緑色の情報ボックス */
+    .stats-box {
+      flex: 1;
+      background-color: #65c466;
+      color: #111111;
+      border-radius: 6px;
+      padding: 14px 10px;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      font-weight: bold;
+    }
+    .stats-label {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+    .stats-value {
+      font-size: 18px;
+      margin-bottom: 10px;
+    }
+    .stats-value:last-child {
+      margin-bottom: 0;
+    }
+
+    /* ファイル選択後に現れる詳細設定エリア（右側設計図） */
+    .upload-details {
+      display: none;
+      margin-bottom: 28px;
+      padding-top: 6px;
+    }
+    .field-label {
+      font-size: 13px;
+      font-weight: bold;
+      color: #333333;
+      margin-bottom: 6px;
+    }
+    .name-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+    }
+    .name-input {
+      flex: 1;
+      background-color: #d4d4d4;
+      border: none;
+      border-radius: 999px;
+      padding: 9px 16px;
+      font-size: 14px;
+      color: #111111;
+      outline: none;
+    }
+    .ext-badge {
+      font-size: 14px;
+      font-weight: bold;
+      color: #333333;
+      min-width: 44px;
+    }
+
+    /* ▼ する / しない 切り替えボタン */
+    .perm-row {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      margin-bottom: 16px;
+      cursor: pointer;
+      user-select: none;
+    }
+    .perm-select-wrap {
+      position: relative;
+      display: inline-flex;
+      align-items: center;
+    }
+    .perm-select {
+      appearance: none;
+      -webkit-appearance: none;
+      background-color: #111111;
+      color: #ffffff;
+      border: none;
+      border-radius: 4px;
+      width: 28px;
+      height: 26px;
+      text-align: center;
+      font-size: 12px;
+      font-weight: bold;
+      cursor: pointer;
+      padding: 0;
+    }
+    .perm-arrow {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #ffffff;
+      font-size: 12px;
+      pointer-events: none;
+    }
+    .perm-text {
+      font-size: 15px;
+      font-weight: bold;
+      color: #111111;
+    }
+
+    /* 大きめの説明入力欄 */
+    .desc-textarea {
+      width: 100%;
+      height: 120px;
+      background-color: #d4d4d4;
+      border: none;
+      border-radius: 10px;
+      padding: 12px 14px;
+      font-size: 14px;
+      font-family: inherit;
+      color: #111111;
+      resize: vertical;
+      outline: none;
+      margin-bottom: 14px;
+    }
+
+    /* 投稿ボタン行 */
+    .action-row {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+    .post-btn {
+      background-color: #1d4ed8;
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 32px;
+      font-size: 15px;
+      font-weight: bold;
+      cursor: pointer;
+      box-shadow: 0 2px 6px rgba(29, 78, 216, 0.25);
+    }
+    .post-btn:hover {
+      background-color: #1e40af;
+    }
+    .post-btn:disabled {
+      background-color: #94a3b8;
+      box-shadow: none;
+      cursor: not-allowed;
+    }
+    .cancel-upload-btn {
+      background-color: #e5e7eb;
+      color: #333333;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .status-msg {
+      font-size: 13px;
+      font-weight: bold;
+      margin-top: 8px;
+      color: #16a34a;
+    }
+
+    /* セクション見出しバッジ（水色・ピンク） */
+    .section-badge {
+      display: inline-block;
+      color: #ffffff;
+      font-size: 15px;
+      font-weight: bold;
+      padding: 8px 26px;
+      border-radius: 999px;
+      margin-bottom: 12px;
+    }
+    .badge-mint {
+      background-color: #5ce1c6;
+    }
+    .badge-pink {
+      background-color: #e93d82;
+    }
+
+    /* 検索バー */
+    .search-wrap {
+      position: relative;
+      margin-bottom: 16px;
+    }
+    .search-icon {
+      position: absolute;
+      left: 12px;
+      top: 50%;
+      transform: translateY(-50%);
+      font-size: 15px;
+      color: #64748b;
+    }
+    .search-input {
+      width: 100%;
+      background-color: #e5e7eb;
+      border: none;
+      border-radius: 999px;
+      padding: 9px 16px 9px 36px;
+      font-size: 14px;
+      outline: none;
+    }
+
+    /* 音声カード（グレーの角丸ボックス） */
+    .voice-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+      margin-bottom: 32px;
+    }
+    .voice-card {
+      background-color: #e5e7eb;
+      border-radius: 16px;
+      padding: 16px 18px;
+    }
+    .voice-name {
+      font-size: 15px;
+      font-weight: bold;
+      margin-bottom: 4px;
+      word-break: break-all;
+    }
+    .voice-desc-label {
+      font-size: 11px;
+      color: #555555;
+    }
+    .voice-desc {
+      font-size: 14px;
+      margin-bottom: 12px;
+      white-space: pre-wrap;
+    }
+    .voice-bottom {
       display: flex;
       flex-wrap: wrap;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 10px;
     }
     audio {
       flex: 1;
-      min-width: 220px;
-      height: 40px;
+      min-width: 200px;
+      height: 36px;
     }
     .download-btn {
-      background-color: #3b82f6;
-      color: white;
+      background-color: #e09119;
+      color: #ffffff;
       text-decoration: none;
-      padding: 8px 16px;
-      border-radius: 6px;
-      font-size: 14px;
+      font-size: 13px;
       font-weight: bold;
+      padding: 8px 20px;
+      border-radius: 999px;
       display: inline-block;
+      text-align: center;
     }
-    .download-btn:hover {
+    .no-download-tag {
+      font-size: 12px;
+      color: #666666;
+      font-weight: bold;
+      padding: 6px 12px;
+    }
+
+    /* 空状態メッセージ */
+    .empty-msg {
+      font-size: 14px;
+      color: #666666;
+      margin: 4px 0;
+    }
+
+    /* コメントエリア */
+    .comment-form {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 12px;
+    }
+    .comment-input {
+      flex: 1;
+      padding: 8px 14px;
+      border: 1px solid #cbd5e1;
+      border-radius: 999px;
+      font-size: 14px;
+    }
+    .comment-send-btn {
+      background-color: #e93d82;
+      color: #ffffff;
+      border: none;
+      border-radius: 999px;
+      padding: 8px 18px;
+      font-size: 13px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .comment-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .comment-bubble {
+      display: inline-block;
+      background-color: #b5b5b5;
+      color: #ffffff;
+      font-size: 13.5px;
+      font-weight: bold;
+      padding: 7px 18px;
+      border-radius: 999px;
+      max-width: 100%;
+      word-break: break-word;
+      align-self: flex-start;
+    }
+
+    /* リアクションボタン（💗と⭐） */
+    .reaction-bar {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 36px;
+    }
+    .reaction-btn {
+      background: none;
+      border: none;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+      padding: 4px 6px;
+      color: #333333;
+      font-weight: bold;
+    }
+    .reaction-btn:active {
+      transform: scale(1.15);
+    }
+
+    /* フッター（ルールリンク） */
+    .footer-area {
+      margin-top: 20px;
+    }
+    .rule-link {
+      color: #2563eb;
+      text-decoration: underline;
+      font-size: 15px;
+      cursor: pointer;
+    }
+
+    /* ルール表示用ポップアップ */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.45);
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+      z-index: 100;
+    }
+    .modal-box {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 22px;
+      max-width: 420px;
+      width: 100%;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.2);
+    }
+    .modal-title {
+      font-size: 18px;
+      font-weight: bold;
+      margin-bottom: 10px;
+    }
+    .modal-body {
+      font-size: 14px;
+      margin-bottom: 18px;
+      line-height: 1.7;
+    }
+    .modal-close {
       background-color: #2563eb;
-    }
-  </style>
-</head>
-<body>
+      color: #ffffff;
+      border: none;
+      padding: 8px 20px;
+border-radius: 8px;
+font-weight: bold;
+cursor: pointer;
+width: 100%;
+}
 
-  <h1>🎙️ 音声共有サイト</h1>
 
-  <div class="card">
-    <h2>音声をアップロード</h2>
-    <div class="upload-area">
-      <input type="file" id="audioInput" accept="audio/*">
-      <button id="uploadBtn" onclick="uploadAudio()">アップロードする</button>
-    </div>
-    <div id="statusText" class="status"></div>
-  </div>
+音声共有サイト
+Sp-25789が管理する音声共有サイトです！
 
-  <div class="card">
-    <h2>みんなの音声一覧</h2>
-    <div id="voiceList">読み込み中...</div>
-  </div>
+ここにある音声はそれぞれの利用規約を守って利用してください！
 
-  <script>
-    const SUPABASE_URL = 'https://supabase.co';
-    const SUPABASE_KEY = 'sb_publishable_0USUuu96Uz4XBBFAA2GPcg_GPwKAFfz';
-    const BUCKET_NAME = 'Voice';
+ルールを守って利用してください！ぜひ scratch もご覧ください！
 
-    const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+音声ファイルの数
+0
+大きさ
+0 KB
 
-    async function loadVoices() {
-      const listEl = document.getElementById('voiceList');
-      const { data, error } = await supabaseClient
-        .storage
-        .from(BUCKET_NAME)
-        .list('', { sortBy: { column: 'created_at', order: 'desc' } });
+音声名
 
-      if (error) {
-        listEl.innerHTML = '<p style="color:red;">読み込みエラーが発生しました。</p>';
-        return;
-      }
 
-      const files = data.filter(item => item.name !== '.emptyFolderPlaceholder');
-      if (files.length === 0) {
-        listEl.innerHTML = '<p>まだ音声ファイルがありません。最初の音声をアップロードしてみましょう！</p>';
-        return;
-      }
+.mp3
+ダウンロードを許可
 
-      listEl.innerHTML = '';
-      files.forEach(file => {
-        const { data: urlData } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(file.name);
-        const publicUrl = urlData.publicUrl;
-        const displayName = file.name.replace(/^\d+_/, '');
 
-        const itemDiv = document.createElement('div');
-        itemDiv.className = 'voice-item';
-        itemDiv.innerHTML = `
-          <div class="voice-title">🎵 ${escapeHtml(displayName)}</div>
-          <div class="voice-controls">
-            <audio controls src="${publicUrl}"></audio>
-            <a href="${publicUrl}?download=${encodeURIComponent(displayName)}" class="download-btn" download="${escapeHtml(displayName)}">ダウンロード</a>
-          </div>
-        `;
-        listEl.appendChild(itemDiv);
-      });
-    }
 
-    async function uploadAudio() {
-      const input = document.getElementById('audioInput');
-      const btn = document.getElementById('uploadBtn');
-      const status = document.getElementById('statusText');
+する
+しない
 
-      if (!input.files || input.files.length === 0) {
-        alert('音声ファイルを選択してください。');
-        return;
-      }
+▼
 
-      const file = input.files[0];
-      const safeFileName = `${Date.now()}_${file.name.replace(/[^a-zA-Z0-9._-]/g, '_')}`;
+する
+説明
+投稿
+キャンセル
 
-      btn.disabled = true;
-      status.textContent = 'アップロード中...';
 
-      const { error } = await supabaseClient
-        .storage
-        .from(BUCKET_NAME)
-        .upload(safeFileName, file);
+みんなの音声
 
-      btn.disabled = false;
+🔍
 
-      if (error) {
-        status.style.color = 'red';
-        status.textContent = 'アップロードに失敗しました：' + error.message;
-      } else {
-        status.style.color = '#059669';
-        status.textContent = 'アップロードが完了しました！';
-        input.value = '';
-        loadVoices();
-      }
-    }
 
-    function escapeHtml(str) {
-      return str.replace(/[&<>"']/g, m => ({
-        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;'
-      }[m]));
-    }
 
-    loadVoices();
-  </script>
+読み込み中...
 
-</body>
-</html>
+コメント
+
+
+送信
+
+
+読み込み中...
+💗 0
+⭐ 0
+
+ルール
+利用ルール
+
+・現在ルールは準備中です。
+
+・公序良俗に反する音声や、著作権を侵害する音声のアップロードは禁止です。
+
+・各音声の説明文に記載された利用条件を守ってご利用ください。
+
+閉じる
+
+const SUPABASE_URL = 'supabase.co';
+const SUPABASE_KEY = 'sb_publishable_0USUuu96Uz4XBBFAA2GPcg_GPwKAFfz';
+const BUCKET_NAME = 'Voice';
+const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
+let allVoices = [];
+let selectedFileExt = '.mp3';
+// 初期化
+async function init() {
+await Promise.all([loadVoices(), loadComments(), loadReactions()]);
+}
+// ファイル選択時の処理（右側の詳細フォームを開く）
+function onFileSelected() {
+const input = document.getElementById('audioInput');
+if (!input.files || input.files.length === 0) return;
+const file = input.files;
+const dotIndex = file.name.lastIndexOf('.');
+const baseName = dotIndex !== -1 ? file.name.substring(0, dotIndex) : file.name;
+selectedFileExt = dotIndex !== -1 ? file.name.substring(dotIndex).toLowerCase() : '.mp3';
+document.getElementById('customNameInput').value = baseName;
+document.getElementById('fileExtBadge').textContent = selectedFileExt;
+document.getElementById('selectedFileHint').textContent = '選択中：' + file.name;
+document.getElementById('statusText').textContent = '';
+document.getElementById('uploadDetails').style.display = 'block';
+}
+// 「ダウンロードを許可」の▼切り替え（する ⇄ しない）
+function updatePermLabel() {
+const sel = document.getElementById('allowDownloadSelect');
+document.getElementById('permLabelText').textContent = sel.value === 'true' ? 'する' : 'しない';
+}
+function togglePermSelect() {
+const sel = document.getElementById('allowDownloadSelect');
+sel.value = sel.value === 'true' ? 'false' : 'true';
+updatePermLabel();
+}
+// フォームを初期状態に戻す
+function resetUploadForm() {
+document.getElementById('audioInput').value = '';
+document.getElementById('customNameInput').value = '';
+document.getElementById('descInput').value = '';
+document.getElementById('allowDownloadSelect').value = 'true';
+updatePermLabel();
+document.getElementById('selectedFileHint').textContent = 'タップしてファイルを選択';
+document.getElementById('statusText').textContent = '';
+document.getElementById('uploadDetails').style.display = 'none';
+}
+// 音声ファイル一覧＆メタ情報の読み込み
+async function loadVoices() {
+const listEl = document.getElementById('voiceList');
+try {
+const [storageRes, infoRes] = await Promise.all([
+supabaseClient.storage.from(BUCKET_NAME).list('', { sortBy: { column: 'created_at', order: 'desc' } }),
+supabaseClient.from('voices_info').select('*')
+]);
+if (storageRes.error) {
+allVoices = [];
+listEl.innerHTML = '音声が見つかりません';
+return;
+}
+const infoMap = {};
+if (infoRes.data) {
+infoRes.data.forEach(row => {
+infoMap[row.file_name] = row;
+});
+}
+const files = (storageRes.data || []).filter(item => item.name !== '.emptyFolderPlaceholder');
+// ファイル数と合計サイズの計算（KB / MB 自動切り替え）
+document.getElementById('fileCount').textContent = files.length;
+const totalBytes = files.reduce((sum, f) => sum + (f.metadata && f.metadata.size ? f.metadata.size : 0), 0);
+document.getElementById('totalSize').textContent = formatBytes(totalBytes);
+allVoices = files.map(file => {
+const { data: urlData } = supabaseClient.storage.from(BUCKET_NAME).getPublicUrl(file.name);
+const meta = infoMap[file.name];
+const fallbackName = file.name.replace(/^\d+_/, '');
+return {
+rawName: file.name,
+displayName: (meta && meta.display_name) ? meta.display_name : fallbackName,
+description: (meta && meta.description) ? meta.description : 'ダウンロードは自由です',
+allowDownload: (meta && typeof meta.allow_download === 'boolean') ? meta.allow_download : true,
+publicUrl: urlData.publicUrl
+};
+});
+renderVoices();
+} catch (e) {
+allVoices = [];
+listEl.innerHTML = '音声が見つかりません';
+}
+}
+// 音声一覧の描画
+function renderVoices() {
+const listEl = document.getElementById('voiceList');
+const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
+const filtered = allVoices.filter(v =>
+v.displayName.toLowerCase().includes(keyword) ||
+v.description.toLowerCase().includes(keyword)
+);
+if (filtered.length === 0) {
+listEl.innerHTML = '音声が見つかりません';
+return;
+}
+listEl.innerHTML = '';
+filtered.forEach(voice => {
+const card = document.createElement('div');
+card.className = 'voice-card';
+const downloadHtml = voice.allowDownload
+? <a href="${voice.publicUrl}?download=${encodeURIComponent(voice.displayName)}" class="download-btn" download="${escapeHtml(voice.displayName)}">ダウンロード</a>
+: <span class="no-download-tag">ダウンロード不可</span>;
+card.innerHTML = `
+${escapeHtml(voice.displayName)}
+説明
+${escapeHtml(voice.description)}
+
+${downloadHtml}
+
+`;
+listEl.appendChild(card);
+});
+}
+// 音声投稿（アップロード）処理
+async function uploadAudio() {
+const input = document.getElementById('audioInput');
+const customName = document.getElementById('customNameInput').value.trim();
+const descInput = document.getElementById('descInput');
+const allowDownload = document.getElementById('allowDownloadSelect').value === 'true';
+const btn = document.getElementById('uploadBtn');
+const status = document.getElementById('statusText');
+if (!input.files || input.files.length === 0) {
+alert('音声ファイルを選択してください。');
+return;
+}
+const file = input.files;
+const finalDisplayName = (customName || '音声') + selectedFileExt;
+const storageSafeName = ${Date.now()}_audio${selectedFileExt.replace(/[^a-zA-Z0-9.]/g, '')};
+const descText = descInput.value.trim() || 'ダウンロードは自由です';
+btn.disabled = true;
+status.style.color = '#2563eb';
+status.textContent = '投稿中...';
+const { error: uploadError } = await supabaseClient.storage.from(BUCKET_NAME).upload(storageSafeName, file);
+if (uploadError) {
+btn.disabled = false;
+status.style.color = '#dc2626';
+status.textContent = '投稿に失敗しました';
+return;
+}
+await supabaseClient.from('voices_info').insert([{
+file_name: storageSafeName,
+display_name: finalDisplayName,
+description: descText,
+allow_download: allowDownload
+}]);
+btn.disabled = false;
+resetUploadForm();
+await loadVoices();
+}
+// コメントの読み込み
+async function loadComments() {
+const listEl = document.getElementById('commentList');
+try {
+const { data, error } = await supabaseClient
+.from('comments')
+.select('*')
+.order('created_at', { ascending: false })
+.limit(30);
+if (error || !data || data.length === 0) {
+listEl.innerHTML = 'コメントがありません';
+return;
+}
+listEl.innerHTML = '';
+data.forEach(c => {
+const div = document.createElement('div');
+div.className = 'comment-bubble';
+div.textContent = c.content;
+listEl.appendChild(div);
+});
+} catch (e) {
+listEl.innerHTML = 'コメントがありません';
+}
+}
+// コメント投稿
+async function postComment() {
+const input = document.getElementById('commentInput');
+const text = input.value.trim();
+if (!text) return;
+input.value = '';
+await supabaseClient.from('comments').insert([{ content: text }]);
+await loadComments();
+}
+// 💗と⭐の読み込み
+async function loadReactions() {
+try {
+const { data } = await supabaseClient.from('reactions').select('*').eq('id', 1).single();
+if (data) {
+document.getElementById('heartCount').textContent = data.hearts;
+document.getElementById('starCount').textContent = data.stars;
+}
+} catch (e) {}
+}
+// 💗と⭐のカウント増加
+async function addReaction(type) {
+const countEl = document.getElementById(type === 'hearts' ? 'heartCount' : 'starCount');
+const nextVal = parseInt(countEl.textContent || '0', 10) + 1;
+countEl.textContent = nextVal;
+await supabaseClient.from('reactions').update({ [type]: nextVal }).eq('id', 1);
+}
+// サイズ表記変換（KB / MB / GB 自動切り替え）
+function formatBytes(bytes) {
+if (!bytes || bytes === 0) return '0 KB';
+if (bytes < 1024 * 1024) {
+return Math.max(1, Math.round(bytes / 1024)) + ' KB';
+}
+if (bytes < 1024 * 1024 * 1024) {
+return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
+}
+return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
+}
+// ルール小窓の開閉
+function openRuleModal() {
+document.getElementById('ruleModal').style.display = 'flex';
+}
+function closeRuleModal() {
+document.getElementById('ruleModal').style.display = 'none';
+}
+function escapeHtml(str) {
+return str.replace(/[&<>"']/g, m => ({
+'&': '&', '<': '<', '>': '>', '"': '"', "'": '''
+}[m]));
+}
+init();
+
+
+
+
+
+
+
+
+
