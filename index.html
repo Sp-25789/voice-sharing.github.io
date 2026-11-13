@@ -6,7 +6,7 @@
   <title>音声共有サイト</title>
   <script src="https://jsdelivr.net"></script>
   <style>
-    * {
+    body, div, input, textarea, select, button, a, label, span {
       box-sizing: border-box;
     }
     body {
@@ -114,7 +114,7 @@
       margin-bottom: 0;
     }
 
-    /* ファイル選択後に現れる詳細設定エリア（右側設計図） */
+    /* ファイル選択後に現れる詳細設定エリア */
     .upload-details {
       display: none;
       margin-bottom: 28px;
@@ -465,7 +465,7 @@
       background-color: #2563eb;
       color: #ffffff;
       border: none;
-      padding: 8px 20px;
+padding: 8px 20px;
 border-radius: 8px;
 font-weight: bold;
 cursor: pointer;
@@ -539,11 +539,9 @@ const BUCKET_NAME = 'Voice';
 const supabaseClient = window.supabase.createClient(SUPABASE_URL, SUPABASE_KEY);
 let allVoices = [];
 let selectedFileExt = '.mp3';
-// 初期化
 async function init() {
 await Promise.all([loadVoices(), loadComments(), loadReactions()]);
 }
-// ファイル選択時の処理（右側の詳細フォームを開く）
 function onFileSelected() {
 const input = document.getElementById('audioInput');
 if (!input.files || input.files.length === 0) return;
@@ -557,7 +555,6 @@ document.getElementById('selectedFileHint').textContent = '選択中：' + file.
 document.getElementById('statusText').textContent = '';
 document.getElementById('uploadDetails').style.display = 'block';
 }
-// 「ダウンロードを許可」の▼切り替え（する ⇄ しない）
 function updatePermLabel() {
 const sel = document.getElementById('allowDownloadSelect');
 document.getElementById('permLabelText').textContent = sel.value === 'true' ? 'する' : 'しない';
@@ -567,7 +564,6 @@ const sel = document.getElementById('allowDownloadSelect');
 sel.value = sel.value === 'true' ? 'false' : 'true';
 updatePermLabel();
 }
-// フォームを初期状態に戻す
 function resetUploadForm() {
 document.getElementById('audioInput').value = '';
 document.getElementById('customNameInput').value = '';
@@ -578,7 +574,6 @@ document.getElementById('selectedFileHint').textContent = 'タップしてファ
 document.getElementById('statusText').textContent = '';
 document.getElementById('uploadDetails').style.display = 'none';
 }
-// 音声ファイル一覧＆メタ情報の読み込み
 async function loadVoices() {
 const listEl = document.getElementById('voiceList');
 try {
@@ -598,7 +593,6 @@ infoMap[row.file_name] = row;
 });
 }
 const files = (storageRes.data || []).filter(item => item.name !== '.emptyFolderPlaceholder');
-// ファイル数と合計サイズの計算（KB / MB 自動切り替え）
 document.getElementById('fileCount').textContent = files.length;
 const totalBytes = files.reduce((sum, f) => sum + (f.metadata && f.metadata.size ? f.metadata.size : 0), 0);
 document.getElementById('totalSize').textContent = formatBytes(totalBytes);
@@ -620,7 +614,6 @@ allVoices = [];
 listEl.innerHTML = '音声が見つかりません';
 }
 }
-// 音声一覧の描画
 function renderVoices() {
 const listEl = document.getElementById('voiceList');
 const keyword = document.getElementById('searchInput').value.trim().toLowerCase();
@@ -650,7 +643,6 @@ ${downloadHtml}
 listEl.appendChild(card);
 });
 }
-// 音声投稿（アップロード）処理
 async function uploadAudio() {
 const input = document.getElementById('audioInput');
 const customName = document.getElementById('customNameInput').value.trim();
@@ -686,7 +678,6 @@ btn.disabled = false;
 resetUploadForm();
 await loadVoices();
 }
-// コメントの読み込み
 async function loadComments() {
 const listEl = document.getElementById('commentList');
 try {
@@ -710,7 +701,6 @@ listEl.appendChild(div);
 listEl.innerHTML = 'コメントがありません';
 }
 }
-// コメント投稿
 async function postComment() {
 const input = document.getElementById('commentInput');
 const text = input.value.trim();
@@ -719,7 +709,6 @@ input.value = '';
 await supabaseClient.from('comments').insert([{ content: text }]);
 await loadComments();
 }
-// 💗と⭐の読み込み
 async function loadReactions() {
 try {
 const { data } = await supabaseClient.from('reactions').select('*').eq('id', 1).single();
@@ -729,14 +718,12 @@ document.getElementById('starCount').textContent = data.stars;
 }
 } catch (e) {}
 }
-// 💗と⭐のカウント増加
 async function addReaction(type) {
 const countEl = document.getElementById(type === 'hearts' ? 'heartCount' : 'starCount');
 const nextVal = parseInt(countEl.textContent || '0', 10) + 1;
 countEl.textContent = nextVal;
 await supabaseClient.from('reactions').update({ [type]: nextVal }).eq('id', 1);
 }
-// サイズ表記変換（KB / MB / GB 自動切り替え）
 function formatBytes(bytes) {
 if (!bytes || bytes === 0) return '0 KB';
 if (bytes < 1024 * 1024) {
@@ -747,7 +734,6 @@ return (bytes / (1024 * 1024)).toFixed(1) + ' MB';
 }
 return (bytes / (1024 * 1024 * 1024)).toFixed(2) + ' GB';
 }
-// ルール小窓の開閉
 function openRuleModal() {
 document.getElementById('ruleModal').style.display = 'flex';
 }
@@ -760,12 +746,3 @@ return str.replace(/[&<>"']/g, m => ({
 }[m]));
 }
 init();
-
-
-
-
-
-
-
-
-
